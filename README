@@ -2,7 +2,7 @@ Geocoding Service
 =================
 
 A trivial service that sits on the enterprise service bus and translates
-addresses to latitude ad longitude for you.
+addresses to latitude and longitude for you.
 
 
 Service Configuration
