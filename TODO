@@ -1,0 +1,10 @@
+* Clean up the StarlingAdapter and get it into SMQueue (or at least it's own
+  Gem).
+
+* Encapsulate all that message handling in an easily testable container.
+
+* Try other services when one fails.
+
+* Send back geocoding accuracy if the geocoding service provides it.
+
+* Tests!

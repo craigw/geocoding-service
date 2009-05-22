@@ -1,0 +1,137 @@
+Geocoding Service
+=================
+
+A trivial service that sits on the enterprise service bus and translates
+addresses to latitude ad longitude for you.
+
+
+Service Configuration
+---------------------
+
+There are two pretty small files that you'll need to create. Both these files
+have example files in the config/ directory.
+
+file:config/message_queue.yml
+
+  SMQueue configuration for the input of this service. SMQueue configuration
+  is a fairly in-depth subject but if you're already using it elsewhere you
+  can pretty much copy and paste the details.
+
+  If you'd just like to use Starling then the example configuration file
+  contains enough to get you started. Copy that to config/message_queue.yml
+  and start Starling.
+
+file:config/geocoder.yml
+
+  Configuration for the geocoding service that you'd prefer to use. Normally
+  I'd use the setup in the example file and geocode using Google (enter
+  "google" for the service in the configuration file). Other options include
+  Yahoo ("yahoo") and MultiMap ("multimap"). There are a bunch of other
+  services too. If you really want to find out more about them read the
+  source.
+
+  The credentials are usually the API key for the service.
+
+
+Using the service
+-----------------
+
+If you use this service you'll be using Enterprise Integration Patterns for:
+Request-Reply, Return-Address and Correlation-Identifier. How fancy is that?
+
+I'll assume you're familiar with a message bus and SMQueue and skip straight
+to how to use this service.
+
+1. Pick a job identifier. A job is a single request to geocode an address.
+   This identifier will be used in all communications with the service about
+   your geocoding request. Make it good and unique - don't want to get your
+   jobs mixed up or you'll end up with addresses that have the wrong
+   geographical coordinates. Make it hard to guess too - don't make it
+   sequential! I'd normally use something like the UUID gem to generate
+   these identifiers. It needs to be a String.
+
+   When you request that a geocoding is performed you'll tell the service
+   what this number is by calling it a request_id. When the service sends
+   you a reply you'll get exactly the same identifier back but it'll be
+   called the correlation_id.
+
+2. Pick a reply channel. Somehow you're going to want to find out where the
+   geocoding service thinks the address is. At the moment the reply channel
+   will receive messages on the same broker that the geocoding service
+   receives requests from. I'm not sure it that will always be the case. See
+   the documentation for your broker if you'd like to move the message from
+   here to somewhere else.
+
+   Normally I'd pick a queue name that is unique to the application that
+   requests the geocodings and have a consumer listening there. Something
+   like `friendsworldwide.geocoding.result`. How you specify your reply
+   channel depends on your broker implementation.
+
+3. Send your request. The service is expecting JSON that looks like this:
+
+    {
+      request_id: "208ef920-294c-012c-07da-001b63b8611d",
+      reply_to: "globallocator.geocding.results",
+      address: "1 Infinite Loop Cupertino, CA"
+    }
+
+4. Receive a response on the reply channel. Something somewhere that you
+   write must be listening to this! Responses will be in JSON.
+
+   Replies look like this:
+
+    {
+      correlation_id: "208ef920-294c-012c-07da-001b63b8611d",
+      coordinates: {
+        latitude: 37.3305336,
+        longtitude: -122.0289606
+      }
+    }
+
+   Sometimes things go wrong - maybe the geocoding service couldn't find an
+   address. If that happens you'll get a message that looks a like this:
+
+    {
+      correlation_id: "208ef920-294c-012c-07da-001b63b8611d",
+      error: "unknown address"
+    }
+
+  These will be put on the same reply channel as successful responses. It's
+  your job to find out if a message is an error or not before processing it.
+
+
+Examples
+--------
+
+An example client is included with this distribution to show how simple
+writing one is. The client reads an address from the command line, asks the
+service to geocode it, then prints the result to STDOUT.
+
+To run the example first configure the service as described above then run:
+
+    bin/geocode [address]
+
+To look up the co-ordinates of Broadcasting House in the UK you might run:
+
+    bin/geocode Broadcasting House, UK
+
+
+Contributing
+------------
+
+See file:TODO for a number of things that are still outstanding. If you fancy
+tackling any of these please do. Fire me a pull request when you're done.
+
+
+Authors
+-------
+
+Craig R Webster <http://barkingiguana.com/~craig>
+
+
+Licence
+-------
+
+Copyright (C) 2009 Craig R Webster. Release under the MIT licence.
+
+See file:LICENCE for the full text of the MIT Licence.
