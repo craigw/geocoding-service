@@ -1,11 +1,14 @@
 #! /usr/bin/env ruby
+
+# A command-line client for the Geocoder service. See file:README for
+# usage instructions.
+
 require 'rubygems'
 require 'smqueue'
 require 'json'
 require 'yaml'
 require 'starling'
 require 'uuid'
-# A command-line client for the Geocoder service.
 
 module SMQueue
   class StarlingAdapter < ::SMQueue::Adapter
