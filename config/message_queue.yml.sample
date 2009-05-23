@@ -1,2 +1,2 @@
-adapter: StarlingAdapter
-queue: geocode
+:adapter: StarlingAdapter
+:queue: geocode
